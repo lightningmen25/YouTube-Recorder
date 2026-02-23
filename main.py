@@ -43,6 +43,12 @@ def f_type(fType): # Not YET...
     global fileType
     fileType = fType
     print(f"Switched To: {fType}")
+    if fType == "Audio":
+        audio.configure(fg_color="green", hover_color="dark green")
+        video.configure(fg_color="blue", hover_color="dark blue")
+    elif fType == "Video":
+        video.configure(fg_color="green", hover_color="dark green")
+        audio.configure(fg_color="blue", hover_color="dark blue")
 
 def fPath():
     global download_path
@@ -88,10 +94,10 @@ progressBar.grid(padx=10, pady=10)
 #fType = customtkinter.CTkButton(app, text="Select File Type", command=f_type, fg_color="yellow", hover_color="black")
 #fType.grid(padx=10, pady=10)
 
-audio = customtkinter.CTkButton(button_frame, text="Audio Format", command=lambda:f_type("Audio"))
+audio = customtkinter.CTkButton(button_frame, text="Audio Format", fg_color="blue", command=lambda:f_type("Audio"))
 audio.grid(padx=10, pady=10, row=6, column=0, sticky="e")
 
-video = customtkinter.CTkButton(button_frame, text="Video Format", command=lambda:f_type("Video"))
+video = customtkinter.CTkButton(button_frame, text="Video Format", fg_color="blue", command=lambda:f_type("Video"))
 video.grid(padx=10, pady=10, row=6, column=1, sticky="w")
 
 # Select Path
