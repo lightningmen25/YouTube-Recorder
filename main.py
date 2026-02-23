@@ -3,6 +3,7 @@ import customtkinter
 from pytubefix import YouTube
 
 download_path = "__main__"
+fileType = "Audio"
 #file_type = "ytObj.streams.get_highest_resolution()" #Not yet done...
 
 def startDownload():
@@ -10,7 +11,12 @@ def startDownload():
         ytLink = link.get()
         ytObj = YouTube(ytLink, on_progress_callback=on_progress)
         #ytVideo = ytObj.streams.get_highest_resolution()
-        ytVideo = ytObj.streams.get_audio_only()
+        if fileType == "Audio":
+            ytVideo = ytObj.streams.get_audio_only()
+        elif fileType == "Video":
+            ytVideo = ytObj.streams.get_highest_resolution()
+        else:
+            print("Error: INCORRECT FILE TYPE!")
 
         title.configure(text=ytObj.title, text_color="white")
         finishLabel.configure(text="")
@@ -33,8 +39,10 @@ def on_progress(stream, chunk, bytes_remaining):
     progressBar.set(float(pPercentage_of_completion) / 100)
     app.update()
 
-def f_type(): # Not YET...
-    pass
+def f_type(fType): # Not YET...
+    global fileType
+    fileType = fType
+    print(f"Switched To: {fType}")
 
 def fPath():
     global download_path
@@ -49,38 +57,50 @@ app = customtkinter.CTk()
 app.geometry("720x480")
 app.title("Youtube Downloader")
 
+button_frame = customtkinter.CTkFrame(app, fg_color="transparent")
+button_frame.grid(row=6, column=0, columnspan=2, pady=10)
+
+app.grid_columnconfigure(0, weight=1)
+
 # Adding UI Elements
 title = customtkinter.CTkLabel(app, text="Insert a youtube link")
-title.pack(padx=10, pady=10)
+title.grid(padx=10, pady=10, row=0, column=0)
 
 # Link input
 url_var = tkinter.StringVar()
 link= customtkinter.CTkEntry(app, width=350, height=40, textvariable=url_var)
-link.pack()
+link.grid()
 
 # Finished Downloading
 finishLabel = customtkinter.CTkLabel(app, text ="")
-finishLabel.pack()
+finishLabel.grid()
 
 # Progress percentage
 pPercentage = customtkinter.CTkLabel(app, text = "0%")
-pPercentage.pack()
+pPercentage.grid()
 
 progressBar = customtkinter.CTkProgressBar(app, width=400)
 progressBar.set(0)
-progressBar.pack(padx=10, pady=10)
+progressBar.grid(padx=10, pady=10)
 
 # Select File Type
-fType = customtkinter.CTkButton(app, text="Select File Type", command=f_type, fg_color="yellow", hover_color="black")
-fType.pack(padx=10, pady=10)
+
+#fType = customtkinter.CTkButton(app, text="Select File Type", command=f_type, fg_color="yellow", hover_color="black")
+#fType.grid(padx=10, pady=10)
+
+audio = customtkinter.CTkButton(button_frame, text="Audio Format", command=lambda:f_type("Audio"))
+audio.grid(padx=10, pady=10, row=6, column=0, sticky="e")
+
+video = customtkinter.CTkButton(button_frame, text="Video Format", command=lambda:f_type("Video"))
+video.grid(padx=10, pady=10, row=6, column=1, sticky="w")
 
 # Select Path
 pDir = customtkinter.CTkButton(app, text="Select File Path", command=fPath, fg_color="green", hover_color="dark green")
-pDir.pack(padx=10, pady=10)
+pDir.grid(padx=10, pady=10)
 
 # Download button
 download = customtkinter.CTkButton(app, text="Download", command=startDownload)
-download.pack(padx=10, pady=10)
+download.grid(padx=10, pady=10)
 
 # Run APP
 app.mainloop()
