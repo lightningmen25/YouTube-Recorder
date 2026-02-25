@@ -4,13 +4,11 @@ from pytubefix import YouTube
 
 download_path = "__main__"
 fileType = "Audio"
-#file_type = "ytObj.streams.get_highest_resolution()" #Not yet done...
 
 def startDownload():
     try:
         ytLink = link.get()
         ytObj = YouTube(ytLink, on_progress_callback=on_progress)
-        #ytVideo = ytObj.streams.get_highest_resolution()
         if fileType == "Audio":
             ytVideo = ytObj.streams.get_audio_only()
         elif fileType == "Video":
@@ -26,7 +24,7 @@ def startDownload():
         finishLabel.configure(text="Download ERROR!", text_color="red")
         print("Youtube link is invalid!")
 
-def on_progress(stream, chunk, bytes_remaining):
+def on_progress(stream, bytes_remaining):
     progressBar.set(0)
     pPercentage.configure(text="0%")
     total_size = stream.filesize
@@ -39,7 +37,8 @@ def on_progress(stream, chunk, bytes_remaining):
     progressBar.set(float(pPercentage_of_completion) / 100)
     app.update()
 
-def f_type(fType): # Not YET...
+# User Chooses file type: Music or Video
+def f_type(fType):
     global fileType
     fileType = fType
     print(f"Switched To: {fType}")
@@ -50,6 +49,7 @@ def f_type(fType): # Not YET...
         video.configure(fg_color="green", hover_color="dark green")
         audio.configure(fg_color="blue", hover_color="dark blue")
 
+# Download file
 def fPath():
     global download_path
     download_path = tkinter.filedialog.askdirectory(title='Select Folder')
@@ -90,10 +90,6 @@ progressBar.set(0)
 progressBar.grid(padx=10, pady=10)
 
 # Select File Type
-
-#fType = customtkinter.CTkButton(app, text="Select File Type", command=f_type, fg_color="yellow", hover_color="black")
-#fType.grid(padx=10, pady=10)
-
 audio = customtkinter.CTkButton(button_frame, text="Audio Format", fg_color="blue", command=lambda:f_type("Audio"))
 audio.grid(padx=10, pady=10, row=6, column=0, sticky="e")
 
