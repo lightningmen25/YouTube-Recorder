@@ -1,8 +1,10 @@
 import tkinter
 import customtkinter
+import threading
+from tkinter import filedialog
 from pytubefix import YouTube
 
-download_path = "__main__"
+download_path = ""
 fileType = "Audio"
 
 def startDownload():
@@ -24,7 +26,7 @@ def startDownload():
         finishLabel.configure(text="Download ERROR!", text_color="red")
         print("Youtube link is invalid!")
 
-def on_progress(stream, bytes_remaining):
+def on_progress(stream, chunk, bytes_remaining):
     progressBar.set(0)
     pPercentage.configure(text="0%")
     total_size = stream.filesize
@@ -33,9 +35,9 @@ def on_progress(stream, bytes_remaining):
     per = str(int(pPercentage_of_completion))
     pPercentage.configure(text=per + '%')
 
-    # Update Prrogress Bar
+    # Update Progress Bar
     progressBar.set(float(pPercentage_of_completion) / 100)
-    app.update()
+    app.update_idletasks()
 
 # User Chooses file type: Music or Video
 def f_type(fType):
@@ -52,7 +54,12 @@ def f_type(fType):
 # Download file
 def fPath():
     global download_path
-    download_path = tkinter.filedialog.askdirectory(title='Select Folder')
+    download_path = filedialog.askdirectory(title='Select Folder')
+
+# Threading
+def threads():
+    download_thread = threading.Thread(target=startDownload)
+    download_thread.start()
 
 # System settings
 customtkinter.set_appearance_mode("System")
@@ -101,7 +108,7 @@ pDir = customtkinter.CTkButton(app, text="Select File Path", command=fPath, fg_c
 pDir.grid(padx=10, pady=10)
 
 # Download button
-download = customtkinter.CTkButton(app, text="Download", command=startDownload)
+download = customtkinter.CTkButton(app, text="Download", command=threads)
 download.grid(padx=10, pady=10)
 
 # Run APP
