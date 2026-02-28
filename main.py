@@ -1,26 +1,94 @@
 import tkinter
 import customtkinter
 import threading
+import subprocess
+import os
 from tkinter import filedialog
 from pytubefix import YouTube
 
-download_path = ""
+download_path = "files"
 fileType = "Audio"
+
+# Downloads Youtube Audio
+def downloadAudio(ytObj):
+    ytAudio = ytObj.streams.filter(only_audio=True).order_by('abr').desc().first()
+    # Get offical path of download
+    ytAudioPath = ytAudio.download(output_path=download_path)
+    return ytAudioPath
+
+# Downloads Youtube Video
+def downloadVideo(ytObj):
+    print("Starting Download...")
+    ytVideo = ytObj.streams.filter(only_video=True).order_by('resolution').desc().first()
+    # Get offical path of download
+    ytVideoPath = ytVideo.download(filename="vid_temp",output_path=download_path)
+    print("Download Complete!")
+    return ytVideoPath
 
 def startDownload():
     try:
+        # Get Youtube Links / checks inputed link
         ytLink = link.get()
         ytObj = YouTube(ytLink, on_progress_callback=on_progress)
-        if fileType == "Audio":
-            ytVideo = ytObj.streams.get_audio_only()
-        elif fileType == "Video":
-            ytVideo = ytObj.streams.get_highest_resolution()
-        else:
-            print("Error: INCORRECT FILE TYPE!")
 
         title.configure(text=ytObj.title, text_color="white")
         finishLabel.configure(text="")
-        ytVideo.download(output_path=download_path)
+
+        # What the user has choosen
+        if fileType == "Audio":
+            # Get highest Audio quality
+            downloadAudio(ytObj)
+            #ytVideo = ytObj.streams.get_audio_only()
+            #ytVideo = ytObj.streams.get_extra_audio_track()
+            #ytVideo = ytObj.streams.filter(only_audio=True, audio_track_name="Klingon").get_audio_only()
+            #Klingon_audio = ytObj.streams.filter(only_audio=True, audio_track_name='Klingon').first()
+            #ytVideo = Klingon_audio
+            #for i, stream in enumerate(ytObj.streams.filter(only_audio=True, mime_type="audio/mp4", audio_track_name="Klingon")):
+                # Sanitize the title to avoid filename errors
+             #   filename = f"{ytObj.title}_track_{i}.{stream.subtype}"
+              #  stream.download(filename=filename)
+               # print(stream)
+        # Downloads both video and Audio seperatly to download highest quiality
+        elif fileType == "Video":
+            video_file = downloadVideo(ytObj)
+            audio_file = downloadAudio(ytObj)
+
+             # Sanitize title to remove illegal filename characters like / or :
+            clean_title = "".join([c for c in ytObj.title if c.isalnum() or c in (' ', '.', '_')]).rstrip()
+            output_merged = os.path.join(download_path, f"{clean_title}.mp4")
+
+            # Create output directory if it doesn't exist
+            os.makedirs(download_path, exist_ok=True)
+
+            # Use -c:v copy and -c:a aac to ensure compatibility without losing quality
+            ffmpeg_command = [
+                'ffmpeg', '-y', 
+                '-i', video_file, 
+                '-i', audio_file, 
+                '-c:v', 'copy', 
+                '-c:a', 'aac',
+                '-b:a', '192k',
+                #'-strict', '-2', # To comply with 2013 Version of FFmpeg
+                output_merged
+            ]
+
+            try:
+                subprocess.run(ffmpeg_command, check=True)
+                print(f"Successfully merged into: {output_merged}")
+
+                # Clean up temporary files
+                os.remove(video_file)
+                os.remove(audio_file)
+            except subprocess.CalledProcessError as e:
+                print(f"FFmpeg merging failed: {e}")
+            except FileNotFoundError:
+                print("FFmpeg not found. Ensure it is installed and in your system's PATH.")
+            
+        else:
+            print("Error: INCORRECT FILE TYPE!")
+            return False
+
+        #ytVideo.download(output_path=download_path)
         finishLabel.configure(text="Downloaded! =)", text_color="green")
     except:
         finishLabel.configure(text="Download ERROR!", text_color="red")
@@ -51,7 +119,7 @@ def f_type(fType):
         video.configure(fg_color="green", hover_color="dark green")
         audio.configure(fg_color="blue", hover_color="dark blue")
 
-# Download file
+# User Chooses Download Path
 def fPath():
     global download_path
     download_path = filedialog.askdirectory(title='Select Folder')
